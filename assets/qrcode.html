@@ -1,0 +1,65 @@
+<html>  
+    <head>
+        <!--这个例子主要演示两点：
+            1.如何调用GO语言编译的wasm函数，在浏览器中根据客户给出的输入，在客户端动态生成二维码图片；
+            2.如何调用GO语言编译的wasm函数，在客户端生成动画图片 -->
+        <meta charset="utf-8"/>
+        <script src="wasm_exec.js"></script>
+        <script>
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("golangDemo.wasm"), go.importObject).then((result) => {
+                go.run(result.instance);
+            });
+            //根据输入的个人信息生成二维码（Qr）图像
+            async function generateQR(){
+                var first= document.getElementById("first").value
+                var last= document.getElementById("last").value
+                var mail= document.getElementById("mail").value
+                var phone= document.getElementById("phone").value
+                var conentStr=first+" "+last+" "+mail+" "+phone
+                //alert(conentStr)
+                //调用golangDemo.wasm中所注册的drawQR函数，在浏览器客户端上画二维码图片。
+                //drawQR函数根据给定内容画二维码，并将其转化为base64格式的字符串，以便HTML的 image元素展现。
+                var imageStr=drawQR(conentStr)
+               // alert(imageStr)
+                document.getElementById("qrcode").src="data:image/png;base64,"+imageStr
+            }
+            async function generateGif(){
+                var gifStr=drawGif()
+               // alert(gifStr)
+                document.getElementById("img_gif").src="data:image/gif;base64,"+gifStr
+            }
+            async function cleanQR() {
+                document.getElementById("qrcode").src=""
+            }    
+            async function cleanGif() {
+                document.getElementById("img_gif").src=""
+            }      
+
+        </script>
+    </head>
+    <body>
+        First Name: <input type="text" id="first" name="first" value="lan">
+        <br>
+        Last Name: <input type="text" id="last" name="last" value="tian">
+        <br>
+        E-mail: <input type="text" id="mail" name="mail" value="lant@neusoft.com">
+        <br>
+        Phone: <input type="text" id="phone" name="phone"value="18629488536">
+        <br>
+        <button onClick="generateQR();" id="runButton" >GO Wasm 生成二维码</button>
+        <button onClick="cleanQR();" id="clearQRButton">清除二维码</button>
+        <div id="target"> </div>
+        <div id="code">
+            <img id="qrcode" src="" />
+        </div>
+        <br>
+        <button onClick="generateGif();" id="genGifButton">GO Wasm 生成动画</button>
+        <button onClick="cleanGif();" id="clearGifButton">清除动画</button>
+        <div id="div_gif">
+            <img id="img_gif" src="" />
+        </div>
+    </body>
+</html> 
+
+
